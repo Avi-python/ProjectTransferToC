@@ -116,7 +116,12 @@ void RemoveStr_Impl(Queue *q, char *input)
         if(!strcmp(cur->data, input))
         {
             if(cnt == 0) q->head = q->head->next;
-            else         pre->next = cur->next;
+            else if(cur->next == NULL)
+            {
+                q->tail = pre;
+                pre->next = cur->next;
+            }
+            else  pre->next = cur->next;
             
             free(cur);
             return;

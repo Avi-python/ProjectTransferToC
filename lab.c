@@ -67,8 +67,16 @@ char * OnlineList()
 
 int main()
 {
-    char tmp[2] = "dan";
-    if(tmp[2] == '\0') printf("HI\n");
-    printf("%s\n", tmp);
+    char name1[10] = "D1";
+    char name2[10] = "D2";
+    char name3[10] = "D3";
+    strcat(name1, name2);
+    printf("%s\n", name1);
+    printf("%s\n", name2);
+    name2[0] = 'C';
+    printf("name2:%s\n", name2);
+    printf("%s\n", name1);
+    
+    // OnlineList();
     return 0;
 }

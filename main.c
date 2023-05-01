@@ -317,11 +317,16 @@ void *ListentForClient(void *arg) // 所有個疑問，為什麼不直接把 thr
                         }
                         UserNameQueue->RemoveStr(UserNameQueue, Str);
                         // printf("size :%d\n", UserNameQueue->GetSize(UserNameQueue)); 
-                        ShowQueue(UserNameQueue);
-                        char *tmp = OnlineList();
+                        // ShowQueue(UserNameQueue);
+                        char tmp1[50];
+                        char *tmp2 = OnlineList();
+                        strncpy(tmp1, tmp2, CharArrLen(tmp2));
+                        tmp1[CharArrLen(tmp2)] = '\0';
+                        // printf("tmp1:%s\n", tmp1);
                         // printf("size :%d\n", UserNameQueue->GetSize(UserNameQueue));
                         // ShowQueue(UserNameQueue);
-                        SendAll(tmp);
+                        SendAll(tmp1);
+                        usleep(100000);
                         // ShowQueue(UserNameQueue);
                         TryMatch();
 
@@ -352,9 +357,7 @@ void *ListentForClient(void *arg) // 所有個疑問，為什麼不直接把 thr
     free(tmp);
     tmp = NULL;
     SystemMsg('P', "Close One Client Thread");
-    ShowQueue(UserNameQueue);
-    printf("size UserNameQueue:%d\n", UserNameQueue->GetSize(UserNameQueue));
-    printf("size WaitingQueue:%d\n", WaitingQueue->GetSize(WaitingQueue));
+    pthread_exit(NULL);
 }
 
 void SystemMsg(char type, char *msg)
@@ -370,7 +373,7 @@ char * OnlineList()
     char *out;
     char tmp[20];
     int length;
-    ShowQueue(UserNameQueue);
+    // ShowQueue(UserNameQueue);
     for(int i = 0; i < size; i++)
     {
         out = (char *)UserNameQueue->Dequeue(UserNameQueue);
@@ -378,9 +381,14 @@ char * OnlineList()
         strncpy(tmp, out, length);
         strncat(output, tmp, length);
         if(i < size - 1) strcat(output, ",");
+        char *copy = calloc(length + 1, sizeof(char));
+        // strncpy(copy, tmp, length);
+        // copy[length] = '\0';
+        // printf("copy:%s\n", copy);
         UserNameQueue->Enqueue(UserNameQueue, out);
+        // ShowQueue(UserNameQueue);
     }
-    ShowQueue(UserNameQueue);
+    // ShowQueue(UserNameQueue);
     // SystemMsg('\0', output);
     return output;
 }
@@ -398,7 +406,7 @@ void SendTo(char *Str1, char* User)
 
 void SendBack(char *Str1, int sockFd)
 {
-    send(sockFd, 0, CharArrLen(Str1) * sizeof(char), 0); 
+    send(sockFd, Str1, CharArrLen(Str1) * sizeof(char), 0); 
 }
 
 void SendAll(char *input)
@@ -412,12 +420,9 @@ void SendAll(char *input)
     for(int i = 0; i < n; i++)
     {
         out = (char *)UserNameQueue->Dequeue(UserNameQueue);
-
-        // printf("%s\n", out);
         struct nlist *tmp = Hashtable->lookup(Hashtable, out);
         FWA *fwa = (FWA *)(tmp->data);
-        // printf("input:%s, size:%ld\n", input, size * sizeof(char));
-        printf("input:%s\n", input);
+        // printf("input:%s\n", input);
         send(fwa->fd, input, size * sizeof(char), 0);
         UserNameQueue->Enqueue(UserNameQueue, out);
     }
@@ -464,40 +469,59 @@ void TryMatch()
         char systemMsg2[100] = "Send 001 to ";
         char systemMsg3[100] = "Send 002 to ";
 
+        int n1 = CharArrLen(Player1);
+        int n2 = CharArrLen(Player2);
+
         if(x) // x == 1
         {
             strcat(send1buf, "3001|");
-            strcat(send1buf, Player2);
+
+            char tmp1[20];
+            strncpy(tmp1, Player2, n2);
+            tmp1[n2] = '\0';
+
+            char tmp2[20];
+            strncpy(tmp2, Player1, n1);
+            tmp2[n1] = '\0';
+
+            strcat(send1buf, tmp1);
             SystemMsg('T', send1buf);
             SendTo(send1buf, Player1);
-
-            strcat(systemMsg2, Player1);
+            strcat(systemMsg2, tmp1);
             SystemMsg('P', systemMsg2);
 
             strcat(send2buf, "3002|");
-            strcat(send2buf, Player1);
+
+            strcat(send2buf, tmp2);
             SystemMsg('T', send2buf);
             SendTo(send2buf, Player2);
-
-            strcat(systemMsg3, Player2);
+            strcat(systemMsg3, tmp2);
             SystemMsg('P', systemMsg3);   
         }
         else
         {
+            char tmp1[20];
+            strncpy(tmp1, Player2, n2);
+            tmp1[n2] = '\0';
+
+            char tmp2[20];
+            strncpy(tmp2, Player1, n1);
+            tmp2[n1] = '\0';
+            
             strcat(send2buf, "3002|");
-            strcat(send2buf, Player2);
+            strcat(send2buf, tmp1);
             SystemMsg('T', send2buf);
             SendTo(send2buf, Player1);
 
-            strcat(systemMsg3, Player1);
+            strcat(systemMsg3, tmp1);
             SystemMsg('P', systemMsg3); 
 
             strcat(send1buf, "3001|");
-            strcat(send1buf, Player1);
+            strcat(send1buf, tmp2);
             SystemMsg('T', send1buf);
             SendTo(send1buf, Player2);
 
-            strcat(systemMsg2, Player2);
+            strcat(systemMsg2, tmp2);
             SystemMsg('P', systemMsg2); 
         }
 
