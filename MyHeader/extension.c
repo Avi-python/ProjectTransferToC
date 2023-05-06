@@ -9,10 +9,10 @@ int CharArrLen(char *input)
     return cnt;
 }
 
-int DigitCounter(int input)
+int DigitCounter(long input)
 {
     int cnt = 0;
-    int tmp = input;
+    long tmp = input;
     while(tmp / 10 != 0)
     {
         cnt++;

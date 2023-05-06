@@ -3,15 +3,17 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
+#include <net/if.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/time.h>
 #include <math.h>
+
 #include "MyHeader/extension.c"
-// #include <local.h>
 #include "MyHeader/hash_2.c"
 #include "MyHeader/queue_2.c"
 
@@ -29,7 +31,7 @@ void TryMatch();
 void CreateRoom(char *, char *);
 char *Enemy(char *);
 char *GetRoomID();
-// int DigitCounter(int);
+
 // char **Split(char *, char, int);
 // 打包線上使用者UserNameQueue裡面的名子成為一個字串(字元陣列)。
 
@@ -71,15 +73,33 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE); // = exit(1);
     }
 
+    // 抓本機 ip
+
+    struct ifreq ifr;
+    char array[] = "wifi0";
+
+    //Type of address to retrieve - IPv4 IP address
+    ifr.ifr_addr.sa_family = AF_INET;
+    //Copy the interface name in the ifreq structure
+    strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
+    if(ioctl(sockSrv, SIOCGIFADDR, &ifr) != 0)
+    {
+        perror("Error: ");
+        exit(1);
+    }
+    //display result
+    printf("IP Address is %s - %s\n" , array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
+
     struct sockaddr_in addrSrv;
     addrSrv.sin_family = AF_INET;
-    inet_pton(AF_INET, "127.0.0.1", &(addrSrv.sin_addr));
+    inet_pton(AF_INET, inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr), &(addrSrv.sin_addr));
 
     // 設定port
     // int portNum;
     // scanf("Please enter port number: %d", &portNum); 
 
     addrSrv.sin_port = htons(4000);
+    printf("Port Number is - %d.\n", 4000);
 
     if(-1 == bind(sockSrv, (const struct sockaddr *)&addrSrv, sizeof(struct sockaddr_in)))
     {
@@ -314,6 +334,8 @@ void *ListentForClient(void *arg) // 所有個疑問，為什麼不直接把 thr
                             strcat(systemMsg2, seed);
                             strcat(systemMsg2, ")");
                             SystemMsg('P', systemMsg2);
+
+                            free(seed);
                         }
                         UserNameQueue->RemoveStr(UserNameQueue, Str);
                         // printf("size :%d\n", UserNameQueue->GetSize(UserNameQueue)); 
@@ -555,7 +577,7 @@ char *GetRoomID()
 {
     struct timeval te; 
     gettimeofday(&te, NULL); // get current time
-    int seed =  (te.tv_sec % 1000000) * 1000 + te.tv_usec/1000; // calculate milliseconds
+    long seed =  (te.tv_sec % 1000000) * 1000000 + te.tv_usec; // calculate milliseconds
     
     int n = DigitCounter(seed);
     int i;

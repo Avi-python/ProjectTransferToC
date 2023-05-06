@@ -12,70 +12,28 @@
 #include <math.h>
 #include "MyHeader/hash_2.c"
 #include "MyHeader/queue_2.c"
+#include "MyHeader/extension.c"
 
-int CharArrLen(char *input)
+char *GetRoomID()
 {
-    int cnt = 0;
-    for(char *it = input; *it != '\0'; it++)
+    struct timeval te; 
+    gettimeofday(&te, NULL); // get current time
+    long seed =  (te.tv_sec % 1000000) * 1000000 + te.tv_usec; // calculate milliseconds
+    
+    int n = DigitCounter(seed);
+    int i;
+    char *numberArray = calloc(n, sizeof(char));
+    for (i = n-1; i >= 0; --i, seed /= 10)
     {
-        cnt++;
+        numberArray[i] = (seed % 10) + '0';
     }
-    return cnt;
+    return numberArray;
 }
 
-void ShowQueue(Queue *q)
-{
-    Node *cur = q->head;
-    while(cur != NULL)
-    {
-        printf("%s, ", (char *)cur->data);
-        cur = cur->next;
-    }
-    printf("\n");
-}
-
-typedef struct 
-{
-    char *name;
-    int num;
-} data;
-
-Queue* UserNameQueue;
-
-char * OnlineList()
-{
-    int size = UserNameQueue->GetSize(UserNameQueue);
-    char* output = calloc(100, sizeof(char));
-    output[0] = 'L';
-    char *out;
-    char tmp[20];
-    int length;
-    ShowQueue(UserNameQueue);
-    for(int i = 0; i < size; i++)
-    {
-        out = (char *)UserNameQueue->Dequeue(UserNameQueue);
-        length = CharArrLen(out);
-        strncpy(tmp, out, length);
-        strncat(output, tmp, length);
-        if(i < size - 1) strcat(output, ",");
-        UserNameQueue->Enqueue(UserNameQueue, out);
-    }
-    ShowQueue(UserNameQueue);
-    // SystemMsg('\0', output);
-    return output;
-}
 
 int main()
 {
-    char name1[10] = "D1";
-    char name2[10] = "D2";
-    char name3[10] = "D3";
-    strcat(name1, name2);
-    printf("%s\n", name1);
-    printf("%s\n", name2);
-    name2[0] = 'C';
-    printf("name2:%s\n", name2);
-    printf("%s\n", name1);
+    printf("ID:%s", GetRoomID());
     
     // OnlineList();
     return 0;

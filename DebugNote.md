@@ -5,9 +5,9 @@
 4. 這也是要注意的一點，因為我自己自製的data structure都只是把pointer存進去，但是都沒有複製一份，所以一定一定要注意空間釋放的問題，這會是我自己這個簡單寫法的最大缺點。2k7
 
 ### sizeof 重點筆記
-1. 在同一個scope如果有明確定義該pointer大小 -> char arr[1000]
+1. 在同一個scope如果有明確定義該 pointer大小 -> char arr[1000]
    1. 則sizeof(arr) == 1000
-2. 但如果不在同scope，他只會回傳 8，就是pointer基本大小
+2. 但如果不在同scope，他只會回傳8，就是pointer基本大小
 
 ### 錯中錯
 1. Remove queue有一個致命錯誤，導致UserNameQueue在Remove時會不正常。
